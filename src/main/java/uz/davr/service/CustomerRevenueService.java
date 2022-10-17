@@ -1,6 +1,8 @@
 package uz.davr.service;
 
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CustomerRevenueService {
     private final RestTemplate restTemplate;
+    private static final Logger logger = LogManager.getLogger(CustomerRevenueService.class);
 
     public CustomerRevenueService(RestTemplate restTemplate, List<CustomerRevenueDto2> revenueDto2List) {
         this.restTemplate = restTemplate;
@@ -40,9 +43,13 @@ public class CustomerRevenueService {
         CallType callType = new CallType();
         callType.setCALL_TYPE("1");
         HttpEntity<CallType> http = new HttpEntity<>(callType, httpHeaders());
-
-        List<IdClient> idClients = List.of(restTemplate.exchange("http://172.16.100.110:8080/back/v2/AllClientsJ",
-                HttpMethod.POST, http, IdClient[].class).getBody());
+        List<IdClient> idClients = null;
+        try {
+            idClients = List.of(restTemplate.exchange("http://172.16.100.110:8080/back/v2/AllClientsJ",
+                    HttpMethod.POST, http, IdClient[].class).getBody());
+        } catch (RestClientException e) {
+            logger.warn(e.getLocalizedMessage());
+        }
         System.out.println("Size: " + idClients.size());
         List<CustomerRevenueDto2> customerRevenueDto2s = new ArrayList<>();
         int i = 0;
