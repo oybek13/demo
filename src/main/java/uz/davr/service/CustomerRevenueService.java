@@ -50,7 +50,7 @@ public class CustomerRevenueService {
         for (IdClient idClient : idClients) {
             i++;
             try {
-                CustomerRevenueDto2 customerRevenueDto2 = response(idClient,endBeginDate);
+                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
                 if (customerRevenueDto2 != null) {
                     customerRevenueDto2s.add(customerRevenueDto2);
                 }
@@ -71,7 +71,7 @@ public class CustomerRevenueService {
 
         for (IdClient idClient : errors) {
             try {
-                CustomerRevenueDto2 customerRevenueDto2 = response(idClient,endBeginDate);
+                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
                 if (customerRevenueDto2 != null) {
                     customerRevenueDto2s.add(customerRevenueDto2);
                 }
@@ -88,12 +88,12 @@ public class CustomerRevenueService {
         return customerRevenueDto2s;
     }
 
-    private CustomerRevenueDto2 response(IdClient idClient,EndBeginDate  endBeginDate) throws RestClientException {
+    private CustomerRevenueDto2 response(IdClient idClient, EndBeginDate endBeginDate) throws RestClientException {
         ResponseEntity<CustomerRevenueDto2[]> response;
         HttpEntity<ClientIncomeRequest> http = null;
 //        try {
         ClientIncomeRequest clientIncomeRequest = new ClientIncomeRequest(
-                idClient.getBranch(), "","", idClient.getId_client()
+                idClient.getBranch(), "", "", idClient.getId_client()
         );
         http = new HttpEntity<>(clientIncomeRequest, httpHeaders());
         response = restTemplate.exchange("http://172.16.100.110:8080/back/v2/Clientsincome", HttpMethod.POST, http, CustomerRevenueDto2[].class);
@@ -270,9 +270,9 @@ public class CustomerRevenueService {
         } catch (Exception e) {
             exchange = null;
         }
-        if (exchange!=null){
+        if (exchange != null) {
             return Arrays.stream(Objects.requireNonNull(exchange.getBody())).findFirst().get();
-        }else {
+        } else {
             return null;
         }
 

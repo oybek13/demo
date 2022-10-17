@@ -1,12 +1,15 @@
 package uz.davr.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IdClient {
 
+    @JsonProperty("branch")
     private String branch;
+    @JsonProperty("id_client")
     private String  idClient;
 
     public IdClient() {
