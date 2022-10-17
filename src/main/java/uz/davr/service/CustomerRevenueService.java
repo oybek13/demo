@@ -43,56 +43,59 @@ public class CustomerRevenueService {
         CallType callType = new CallType();
         callType.setCALL_TYPE("1");
         HttpEntity<CallType> http = new HttpEntity<>(callType, httpHeaders());
-        List<IdClient> idClients = null;
-        try {
-            idClients = List.of(restTemplate.exchange("http://172.16.100.110:8080/back/v2/AllClientsJ",
-                    HttpMethod.POST, http, IdClient[].class).getBody());
-        } catch (RestClientException e) {
-            logger.warn(e.getLocalizedMessage());
-        }
-        System.out.println("Size: " + idClients.size());
-        List<CustomerRevenueDto2> customerRevenueDto2s = new ArrayList<>();
-        int i = 0;
-        List<IdClient> errors = new ArrayList<>();
-        for (IdClient idClient : idClients) {
-            i++;
-            try {
-                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
-                if (customerRevenueDto2 != null) {
-                    customerRevenueDto2s.add(customerRevenueDto2);
-                }
-                try {
-                    TimeUnit.MILLISECONDS.sleep(10);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } catch (RestClientException e) {
-                errors.add(idClient);
-            }
-            if (i > 30000) {
-                break;
-            }
-        }
-        System.out.println("Error size: " + errors.size());
-
-
-        for (IdClient idClient : errors) {
-            try {
-                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
-                if (customerRevenueDto2 != null) {
-                    customerRevenueDto2s.add(customerRevenueDto2);
-                }
-                try {
-                    TimeUnit.MILLISECONDS.sleep(10);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } catch (RestClientException e) {
-                System.out.println("2-etap");
-            }
-        }
-        revenueDto2List.addAll(customerRevenueDto2s);
-        return customerRevenueDto2s;
+        String idClients = restTemplate.exchange("http://172.16.100.110:8080/back/v2/AllClientsJ",
+                HttpMethod.POST, http, String.class).getBody();
+        logger.warn(idClients);
+//        List<IdClient> idClients = null;
+//        try {
+//            idClients = List.of(restTemplate.exchange("http://172.16.100.110:8080/back/v2/AllClientsJ",
+//                    HttpMethod.POST, http, IdClient[].class).getBody());
+//        } catch (RestClientException e) {
+//            logger.warn(e.getLocalizedMessage());
+//        }
+//        System.out.println("Size: " + idClients.size());
+//        List<CustomerRevenueDto2> customerRevenueDto2s = new ArrayList<>();
+//        int i = 0;
+//        List<IdClient> errors = new ArrayList<>();
+//        for (IdClient idClient : idClients) {
+//            i++;
+//            try {
+//                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
+//                if (customerRevenueDto2 != null) {
+//                    customerRevenueDto2s.add(customerRevenueDto2);
+//                }
+//                try {
+//                    TimeUnit.MILLISECONDS.sleep(10);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            } catch (RestClientException e) {
+//                errors.add(idClient);
+//            }
+//            if (i > 30000) {
+//                break;
+//            }
+//        }
+//        System.out.println("Error size: " + errors.size());
+//
+//
+//        for (IdClient idClient : errors) {
+//            try {
+//                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
+//                if (customerRevenueDto2 != null) {
+//                    customerRevenueDto2s.add(customerRevenueDto2);
+//                }
+//                try {
+//                    TimeUnit.MILLISECONDS.sleep(10);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            } catch (RestClientException e) {
+//                System.out.println("2-etap");
+//            }
+//        }
+//        revenueDto2List.addAll(customerRevenueDto2s);
+        return null;
     }
 
     private CustomerRevenueDto2 response(IdClient idClient, EndBeginDate endBeginDate) throws RestClientException {
