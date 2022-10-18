@@ -1,14 +1,13 @@
 package uz.davr.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.StringJoiner;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class IdClient {
-
     @JsonProperty("branch")
     private String branch;
     @JsonProperty("id_client")
@@ -36,5 +35,13 @@ public class IdClient {
 
     public void setId_client(String id_client) {
         this.idClient = id_client;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", IdClient.class.getSimpleName() + "[", "]")
+                .add("branch='" + branch + "'")
+                .add("idClient='" + idClient + "'")
+                .toString();
     }
 }

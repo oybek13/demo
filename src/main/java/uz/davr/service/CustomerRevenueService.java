@@ -20,17 +20,14 @@ import uz.davr.dto.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
 @Service
 public class CustomerRevenueService {
     private final RestTemplate restTemplate;
-    private static final Logger logger = LogManager.getLogger(CustomerRevenueService.class);
+    public static final Logger logger = LogManager.getLogger(CustomerRevenueService.class);
 
     public CustomerRevenueService(RestTemplate restTemplate, List<CustomerRevenueDto2> revenueDto2List) {
         this.restTemplate = restTemplate;
@@ -43,42 +40,40 @@ public class CustomerRevenueService {
         CallType callType = new CallType();
         callType.setCALL_TYPE("1");
         HttpEntity<CallType> http = new HttpEntity<>(callType, httpHeaders());
-        List<IdClient> idClients = null;
-        try {
-            idClients = List.of(restTemplate.exchange("http://172.16.100.110:8080/back/v2/AllClientsJ",
-                    HttpMethod.POST, http, IdClient[].class).getBody());
-        } catch (RestClientException e) {
-            logger.warn(e.getLocalizedMessage());
-        }
-        System.out.println("Size: " + idClients.size());
+
+        List<IdClient> idClients = List.of(Objects.requireNonNull(restTemplate.exchange("http://172.16.100.112:5252/back/v2/AllClientsJ",
+                HttpMethod.POST, http, IdClient[].class).getBody()));
+
+        logger.info("Size: {}", idClients.size());
+
         List<CustomerRevenueDto2> customerRevenueDto2s = new ArrayList<>();
         int i = 0;
-        List<IdClient> errors = new ArrayList<>();
+        Stack<IdClient> errors = new Stack<>();
         for (IdClient idClient : idClients) {
             i++;
             try {
-                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
-                if (customerRevenueDto2 != null) {
-                    customerRevenueDto2s.add(customerRevenueDto2);
-                }
+                CustomerRevenueDto2 customerRevenueDto2 = response(idClient,endBeginDate);
+                customerRevenueDto2s.add(customerRevenueDto2);
                 try {
                     TimeUnit.MILLISECONDS.sleep(10);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             } catch (RestClientException e) {
-                errors.add(idClient);
+                errors.push(idClient);
+//                errors.add(idClient);
             }
-            if (i > 30000) {
-                break;
-            }
+
         }
-        System.out.println("Error size: " + errors.size());
-
-
-        for (IdClient idClient : errors) {
+        logger.info(customerRevenueDto2s.size());
+        logger.info("Error size: {}", errors.size());
+        logger.info(errors);
+        while (!errors.isEmpty()) {
+            IdClient idClient = null;
             try {
-                CustomerRevenueDto2 customerRevenueDto2 = response(idClient, endBeginDate);
+                idClient = errors.pop();
+                CustomerRevenueDto2 customerRevenueDto2 = response(idClient,endBeginDate);
+//                logger.info("error data {} ",customerRevenueDto2);
                 if (customerRevenueDto2 != null) {
                     customerRevenueDto2s.add(customerRevenueDto2);
                 }
@@ -88,22 +83,42 @@ public class CustomerRevenueService {
                     throw new RuntimeException(e);
                 }
             } catch (RestClientException e) {
-                System.out.println("2-etap");
+                logger.warn("Retry");
+                errors.push(idClient);
             }
         }
+
+
+//        for (IdClient idClient : errors) {
+//            try {
+//                CustomerRevenueDto2 customerRevenueDto2 = response(idClient,endBeginDate);
+//                if (customerRevenueDto2 != null) {
+//                    customerRevenueDto2s.add(customerRevenueDto2);
+//                }
+//                try {
+//                    TimeUnit.MILLISECONDS.sleep(10);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            } catch (RestClientException e) {
+//                System.out.println("2-etap");
+//            }
+//        }
+
+        logger.info(customerRevenueDto2s.size());
         revenueDto2List.addAll(customerRevenueDto2s);
         return customerRevenueDto2s;
     }
 
-    private CustomerRevenueDto2 response(IdClient idClient, EndBeginDate endBeginDate) throws RestClientException {
+    private CustomerRevenueDto2 response(IdClient idClient,EndBeginDate  endBeginDate) throws RestClientException {
         ResponseEntity<CustomerRevenueDto2[]> response;
         HttpEntity<ClientIncomeRequest> http = null;
 //        try {
         ClientIncomeRequest clientIncomeRequest = new ClientIncomeRequest(
-                idClient.getBranch(), "", "", idClient.getId_client()
+                idClient.getBranch(), "","", idClient.getId_client()
         );
         http = new HttpEntity<>(clientIncomeRequest, httpHeaders());
-        response = restTemplate.exchange("http://172.16.100.110:8080/back/v2/Clientsincome", HttpMethod.POST, http, CustomerRevenueDto2[].class);
+        response = restTemplate.exchange("http://172.16.100.112:5252/back/v2/Clientsincome", HttpMethod.POST, http, CustomerRevenueDto2[].class);
         return Arrays.stream(response.getBody()).findFirst().get();
 //        }catch (RestClientException m){
 //            System.out.println(idClient.getId_client());
@@ -272,14 +287,14 @@ public class CustomerRevenueService {
         http = new HttpEntity<>(clientId, httpHeaders());
         ResponseEntity<CustomerRevenueDto2[]> exchange = null;
         try {
-            exchange = restTemplate.exchange("http://172.16.100.110:8080/back/v2/Clientsincome", HttpMethod.POST, http, CustomerRevenueDto2[].class);
+            exchange = restTemplate.exchange("http://172.16.100.112:5252/back/v2/Clientsincome", HttpMethod.POST, http, CustomerRevenueDto2[].class);
 
         } catch (Exception e) {
             exchange = null;
         }
-        if (exchange != null) {
+        if (exchange!=null){
             return Arrays.stream(Objects.requireNonNull(exchange.getBody())).findFirst().get();
-        } else {
+        }else {
             return null;
         }
 
